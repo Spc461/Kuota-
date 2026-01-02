@@ -1,0 +1,52 @@
+node_modules/
+.expo/
+.expo-shared/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Firebase
+firebase-debug.log*
+.firebaserc
+# Note: google-services.json is included for this specific Firebase config task
+# In production, you should exclude this file and use environment-specific configs
+# google-services.json
+GoogleService-Info.plist
+
+# Build artifacts
+dist/
+build/
+*.apk
+*.ipa
+
+# Native projects
+android/
+ios/
+
+# OS
+.DS_Store*
+humbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript
+*.tsbuildinfo
+
+test-coverage/
+coverage/
