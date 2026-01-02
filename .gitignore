@@ -14,7 +14,9 @@ yarn-error.log*
 # Firebase
 firebase-debug.log*
 .firebaserc
-google-services.json
+# Note: google-services.json is included for this specific Firebase config task
+# In production, you should exclude this file and use environment-specific configs
+# google-services.json
 GoogleService-Info.plist
 
 # Build artifacts
@@ -22,6 +24,10 @@ dist/
 build/
 *.apk
 *.ipa
+
+# Native projects
+android/
+ios/
 
 # OS
 .DS_Store*

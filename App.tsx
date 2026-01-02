@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import { initializeNotifications, requestNotificationPermission, onNotificationReceived } from './src/services/firebase';
+import { getConfigStatus } from './src/config/firebase.config';
 
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [firebaseAvailable, setFirebaseAvailable] = useState(false);
   const [authStatus, setAuthStatus] = useState('checking');
+  const [configStatus, setConfigStatus] = useState<any>(null);
 
   useEffect(() => {
     initializeApp();
@@ -15,6 +17,11 @@ export default function App() {
   const initializeApp = async () => {
     try {
       console.log('[App] Starting app initialization...');
+      
+      // Get and set Firebase configuration status
+      const config = getConfigStatus();
+      setConfigStatus(config);
+      console.log('[App] Firebase config status:', config);
       
       // Initialize notifications with graceful fallback
       const result = await initializeNotifications();
@@ -75,6 +82,13 @@ export default function App() {
           <Text style={styles.statusLabel}>Firebase Status:</Text>
           <Text style={[styles.statusValue, firebaseAvailable ? styles.success : styles.error]}>
             {firebaseAvailable ? 'Available ✓' : 'Unavailable ✗'}
+          </Text>
+        </View>
+
+        <View style={styles.statusContainer}>
+          <Text style={styles.statusLabel}>Firebase Config:</Text>
+          <Text style={[styles.statusValue, configStatus?.configAvailable ? styles.success : styles.warning]}>
+            {configStatus?.configAvailable ? 'Configured ✓' : 'Not Configured ✗'}
           </Text>
         </View>
 

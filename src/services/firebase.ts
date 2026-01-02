@@ -2,6 +2,7 @@ import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messag
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
+import { FIREBASE_CONFIG, getConfigStatus } from '../config/firebase.config';
 
 interface NotificationServiceResult {
   firebaseAvailable: boolean;
@@ -24,11 +25,24 @@ class FirebaseService {
     try {
       console.log('[FirebaseService] Attempting to initialize Firebase...');
       
+      // Log configuration status for debugging
+      const configStatus = getConfigStatus();
+      console.log('[FirebaseService] Configuration status:', {
+        hasConfigFiles: configStatus.hasConfigFiles,
+        configAvailable: configStatus.configAvailable,
+        projectId: configStatus.config?.projectId,
+        hasApiKey: configStatus.config?.hasApiKey,
+      });
+      
       if (this.isFirebaseAvailable()) {
         this.firebaseApp = require('@react-native-firebase/app').default;
         this.messagingInstance = messaging();
         this.isInitialized = true;
-        console.log('[FirebaseService] Firebase initialized successfully');
+        console.log('[FirebaseService] Firebase initialized successfully with config:', {
+          projectId: FIREBASE_CONFIG.projectId,
+          authDomain: FIREBASE_CONFIG.authDomain,
+          hasValidConfig: configStatus.configAvailable
+        });
       } else {
         console.log('[FirebaseService] Firebase not available, using fallback mode');
         this.isInitialized = false;
