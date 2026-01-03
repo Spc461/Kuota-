@@ -1,0 +1,290 @@
+// Firebase Service with Graceful Fallback for Development
+// This implementation handles missing RNFBAppModule in development builds
+
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import { Platform } from 'react-native';
+
+interface NotificationServiceResult {
+  firebaseAvailable: boolean;
+  notificationsEnabled: boolean;
+  error?: string;
+  details?: any;
+}
+
+class FirebaseService {
+  private isInitialized = false;
+  private firebaseApp: any = null;
+  private messagingInstance: any = null;
+  private lastError: Error | null = null;
+  private devModeDisabled = false;
+
+  constructor() {
+    this.initializeWithFallback();
+  }
+
+  private initializeWithFallback() {
+    try {
+      console.log('[FirebaseService] Attempting to initialize Firebase...');
+      
+      // Check if we should disable Firebase in development mode
+      if (__DEV__) {
+        console.log('[FirebaseService] Development mode detected - checking Firebase availability');
+        
+        // Try to check if Firebase modules are available
+        if (!this.isFirebaseAvailable()) {
+          console.log('[FirebaseService] Firebase modules not available in development - using fallback mode');
+          this.devModeDisabled = true;
+          this.isInitialized = false;
+          return;
+        }
+      }
+
+      if (this.isFirebaseAvailable()) {
+        try {
+          this.firebaseApp = require('@react-native-firebase/app').default;
+          this.messagingInstance = require('@react-native-firebase/messaging').default();
+          this.isInitialized = true;
+          console.log('[FirebaseService] Firebase initialized successfully');
+        } catch (firebaseError) {
+          console.error('[FirebaseService] Firebase initialization failed, falling back:', firebaseError.message);
+          this.handleInitializationError(firebaseError);
+        }
+      } else {
+        console.log('[FirebaseService] Firebase not available, using fallback mode');
+        this.isInitialized = false;
+      }
+    } catch (error) {
+      this.handleInitializationError(error);
+    }
+  }
+
+  private isFirebaseAvailable(): boolean {
+    try {
+      if (__DEV__) {
+        console.log('[FirebaseService] Development mode detected');
+      }
+
+      // Try to require Firebase modules
+      require('@react-native-firebase/app');
+      require('@react-native-firebase/messaging');
+
+      return true;
+    } catch (error) {
+      console.log('[FirebaseService] Firebase modules not available:', error.message);
+      return false;
+    }
+  }
+
+  private handleInitializationError(error: any) {
+    this.lastError = error;
+    this.isInitialized = false;
+    console.error('[FirebaseService] Initialization failed:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack?.substring(0, 200) + '...'
+    });
+  }
+
+  async initializeNotifications(): Promise<NotificationServiceResult> {
+    const result: NotificationServiceResult = {
+      firebaseAvailable: this.isInitialized,
+      notificationsEnabled: false,
+    };
+
+    try {
+      console.log('[FirebaseService] Starting notification initialization...');
+
+      if (this.devModeDisabled || !this.isInitialized) {
+        console.log('[FirebaseService] Using Expo notifications fallback');
+        const expoResult = await this.initializeExpoNotifications();
+        result.firebaseAvailable = false;
+        result.notificationsEnabled = expoResult.granted;
+        result.details = expoResult;
+        return result;
+      }
+
+      const nativeResult = await this.initializeNativeNotifications();
+      result.notificationsEnabled = nativeResult.enabled;
+      result.details = nativeResult;
+
+      console.log('[FirebaseService] Notification initialization complete:', result);
+      return result;
+
+    } catch (error) {
+      console.error('[FirebaseService] Notification initialization error:', error);
+      result.error = error instanceof Error ? error.message : 'Unknown error';
+      result.notificationsEnabled = false;
+      return result;
+    }
+  }
+
+  private async initializeExpoNotifications(): Promise<{ granted: boolean; token?: string }> {
+    try {
+      console.log('[FirebaseService] Initializing Expo notifications...');
+
+      if (!Device.isDevice) {
+        console.log('[FirebaseService] Running on simulator, Expo notifications limited');
+        return { granted: false };
+      }
+
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: false,
+          shouldSetBadge: false,
+        }),
+      });
+
+      const { status } = await Notifications.requestPermissionsAsync();
+      const granted = status === 'granted';
+
+      let token: string | undefined;
+      if (granted) {
+        token = (await Notifications.getExpoPushTokenAsync()).data;
+        console.log('[FirebaseService] Expo push token obtained:', token?.substring(0, 20) + '...');
+      }
+
+      return { granted, token };
+    } catch (error) {
+      console.error('[FirebaseService] Expo notifications error:', error);
+      return { granted: false };
+    }
+  }
+
+  private async initializeNativeNotifications(): Promise<{ enabled: boolean; token?: string; error?: string }> {
+    try {
+      console.log('[FirebaseService] Initializing native Firebase notifications...');
+
+      if (Platform.OS === 'ios') {
+        const messaging = require('@react-native-firebase/messaging').default();
+        const authStatus = await messaging.requestPermission();
+        const enabled = authStatus === 1 || authStatus === 2;
+
+        if (!enabled) {
+          console.log('[FirebaseService] iOS notification permission denied');
+          return { enabled: false, error: 'Permission denied' };
+        }
+      }
+
+      const messaging = require('@react-native-firebase/messaging').default();
+      const token = await messaging.getToken();
+      console.log('[FirebaseService] FCM token obtained:', token?.substring(0, 20) + '...');
+
+      this.setupMessageHandlers();
+
+      return { enabled: true, token };
+    } catch (error) {
+      console.error('[FirebaseService] Native notifications error:', error);
+      return { enabled: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  private setupMessageHandlers() {
+    try {
+      const messaging = require('@react-native-firebase/messaging').default();
+      
+      messaging.onMessage(async (remoteMessage: any) => {
+        console.log('[FirebaseService] Foreground message received:', remoteMessage);
+      });
+
+      messaging.onNotificationOpenedApp((remoteMessage: any) => {
+        console.log('[FirebaseService] Notification opened app:', remoteMessage);
+      });
+
+      messaging
+        .getInitialNotification()
+        .then((remoteMessage: any | null) => {
+          if (remoteMessage) {
+            console.log('[FirebaseService] Initial notification:', remoteMessage);
+          }
+        });
+
+      console.log('[FirebaseService] Message handlers configured');
+    } catch (error) {
+      console.error('[FirebaseService] Error setting up message handlers:', error);
+    }
+  }
+
+  async requestPermission(): Promise<boolean> {
+    try {
+      console.log('[FirebaseService] Requesting notification permission...');
+
+      if (this.devModeDisabled || !this.isInitialized) {
+        console.log('[FirebaseService] Using Expo permission request fallback');
+        const { status } = await Notifications.requestPermissionsAsync();
+        return status === 'granted';
+      }
+
+      const messaging = require('@react-native-firebase/messaging').default();
+      const authStatus = await messaging.requestPermission();
+      const enabled = authStatus === 1 || authStatus === 2;
+
+      console.log('[FirebaseService] Permission result:', enabled);
+      return enabled;
+    } catch (error) {
+      console.error('[FirebaseService] Error requesting permission:', error);
+      return false;
+    }
+  }
+
+  getStatus() {
+    return {
+      isInitialized: this.isInitialized,
+      hasError: !!this.lastError,
+      lastError: this.lastError?.message,
+      firebaseAvailable: this.isFirebaseAvailable(),
+      devModeDisabled: this.devModeDisabled,
+    };
+  }
+}
+
+const firebaseService = new FirebaseService();
+
+export async function initializeNotifications(): Promise<NotificationServiceResult> {
+  try {
+    console.log('[firebase.ts] initializeNotifications() called');
+    return await firebaseService.initializeNotifications();
+  } catch (error) {
+    console.error('[firebase.ts] Critical error in initializeNotifications:', error);
+    return {
+      firebaseAvailable: false,
+      notificationsEnabled: false,
+      error: error instanceof Error ? error.message : 'Unknown critical error',
+    };
+  }
+}
+
+export async function requestNotificationPermission(): Promise<boolean> {
+  try {
+    console.log('[firebase.ts] requestNotificationPermission() called');
+    return await firebaseService.requestPermission();
+  } catch (error) {
+    console.error('[firebase.ts] Error in requestNotificationPermission:', error);
+    return false;
+  }
+}
+
+export function onNotificationReceived(callback: (notification: any) => void) {
+  try {
+    console.log('[firebase.ts] Setting up notification listener');
+
+    if (firebaseService.getStatus().isInitialized) {
+      const messaging = require('@react-native-firebase/messaging').default();
+      return messaging.onMessage(callback);
+    } else {
+      return Notifications.addNotificationReceivedListener(callback);
+    }
+  } catch (error) {
+    console.error('[firebase.ts] Error setting up notification listener:', error);
+    return null;
+  }
+}
+
+export function getFirebaseStatus() {
+  return firebaseService.getStatus();
+}
+
+export function isFirebaseDisabledInDevMode(): boolean {
+  return firebaseService.getStatus().devModeDisabled;
+}
