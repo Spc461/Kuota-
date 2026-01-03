@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Kuota",
+    "slug": "kuota",
+    "version": "1.0.0",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {},
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {},
+    "sdkVersion": "54"
+  }
+}
