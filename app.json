@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "Kuota",
+    "slug": "kuota",
+    "version": "1.0.0",
+    "sdkVersion": "54.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1e3a8a"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kuota.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1e3a8a"
+      },
+      "package": "com.kuota.app",
+      "versionCode": 1,
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "fullScreen": false,
+      "statusBarHidden": false,
+      "statusBarTranslucent": true,
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "NOTIFICATIONS",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": ["expo-notifications"],
+    "extra": {
+      "eas": {
+        "projectId": "kuota-rn-expo-algeria"
+      },
+      "firebase": {
+        "apiKey": "AIzaSyDI8w5sv5NUEVry2Zn7kOAM7eNDC4SMemo",
+        "authDomain": "kuota-f0e3d.firebaseapp.com",
+        "projectId": "kuota-f0e3d",
+        "storageBucket": "kuota-f0e3d.firebasestorage.app",
+        "messagingSenderId": "99983666038",
+        "appId": "1:99983666038:android:30e24dc78f26e39c266857"
+      }
+    }
+  }
+}
