@@ -15,39 +15,43 @@ Notifications.setNotificationHandler({
 
 export const notificationService = {
   registerForPushNotifications: async (): Promise<string | null> => {
-    let token: string | null = null;
+    try {
+      let token: string | null = null;
 
-    if (Device.isDevice) {
-      const { status: existingStatus } =
-        await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
+      if (Device.isDevice) {
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
 
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
+        if (existingStatus !== 'granted') {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+
+        if (finalStatus !== 'granted') {
+          return null;
+        }
+
+        const projectId =
+          Constants.expoConfig?.extra?.eas?.projectId ??
+          (process.env as Record<string, string | undefined>).EXPO_PUBLIC_EAS_PROJECT_ID;
+
+        token = (await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined)).data;
       }
 
-      if (finalStatus !== 'granted') {
-        return null;
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'default',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#1e3a8a',
+        });
       }
 
-      token = (
-        await Notifications.getExpoPushTokenAsync({
-          projectId: Constants.expoConfig?.extra?.eas?.projectId,
-        })
-      ).data;
+      return token;
+    } catch (error) {
+      console.error('[notificationService] registerForPushNotifications error', error);
+      return null;
     }
-
-    if (Platform.OS === 'android') {
-      Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#1e3a8a',
-      });
-    }
-
-    return token;
   },
 
   scheduleLocalNotification: async (

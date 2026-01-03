@@ -6,12 +6,18 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { store } from './src/store';
 import RootNavigator from './src/navigation/RootNavigator';
-import { notificationService } from './src/services/notifications';
+import { initializeNotifications } from './src/services/firebase';
 
 export default function App() {
   useEffect(() => {
     const setupNotifications = async () => {
-      const token = await notificationService.registerForPushNotifications();
+      const result = await initializeNotifications();
+
+      if (result.error) {
+        console.warn('[App] Notifications initialized with errors:', result.error);
+      }
+
+      const token = result.details?.token as string | undefined;
       if (token) {
         // TODO: Send token to backend
       }
