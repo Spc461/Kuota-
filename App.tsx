@@ -14,7 +14,10 @@ export default function App() {
       const result = await initializeNotifications();
 
       if (result.error) {
-        console.warn('[App] Notifications initialized with errors:', result.error);
+        console.warn(
+          '[App] Notifications initialized with errors:',
+          result.error
+        );
       }
 
       const token = result.details?.token as string | undefined;

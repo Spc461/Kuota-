@@ -14,8 +14,6 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@react-native-firebase/app": "^21.6.1",
-    "@react-native-firebase/messaging": "^21.6.1",
     "@react-navigation/bottom-tabs": "^7.9.0",
     "@react-navigation/drawer": "^7.7.10",
     "@react-navigation/native": "^7.1.26",
@@ -28,6 +26,7 @@
     "expo-localization": "~17.0.8",
     "expo-notifications": "~0.32.15",
     "expo-status-bar": "~3.0.9",
+    "firebase": "^10.12.4",
     "i18n-js": "^4.5.1",
     "react": "19.1.0",
     "react-native": "0.81.5",

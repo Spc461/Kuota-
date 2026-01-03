@@ -19,7 +19,8 @@ export const notificationService = {
       let token: string | null = null;
 
       if (Device.isDevice) {
-        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        const { status: existingStatus } =
+          await Notifications.getPermissionsAsync();
         let finalStatus = existingStatus;
 
         if (existingStatus !== 'granted') {
@@ -33,9 +34,14 @@ export const notificationService = {
 
         const projectId =
           Constants.expoConfig?.extra?.eas?.projectId ??
-          (process.env as Record<string, string | undefined>).EXPO_PUBLIC_EAS_PROJECT_ID;
+          (process.env as Record<string, string | undefined>)
+            .EXPO_PUBLIC_EAS_PROJECT_ID;
 
-        token = (await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined)).data;
+        token = (
+          await Notifications.getExpoPushTokenAsync(
+            projectId ? { projectId } : undefined
+          )
+        ).data;
       }
 
       if (Platform.OS === 'android') {
@@ -49,7 +55,10 @@ export const notificationService = {
 
       return token;
     } catch (error) {
-      console.error('[notificationService] registerForPushNotifications error', error);
+      console.error(
+        '[notificationService] registerForPushNotifications error',
+        error
+      );
       return null;
     }
   },

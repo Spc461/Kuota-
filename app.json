@@ -39,14 +39,6 @@
     "extra": {
       "eas": {
         "projectId": "kuota-rn-expo-algeria"
-      },
-      "firebase": {
-        "apiKey": "AIzaSyDI8w5sv5NUEVry2Zn7kOAM7eNDC4SMemo",
-        "authDomain": "kuota-f0e3d.firebaseapp.com",
-        "projectId": "kuota-f0e3d",
-        "storageBucket": "kuota-f0e3d.firebasestorage.app",
-        "messagingSenderId": "99983666038",
-        "appId": "1:99983666038:android:30e24dc78f26e39c266857"
       }
     }
   }
