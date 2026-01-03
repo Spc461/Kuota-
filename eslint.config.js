@@ -1,13 +1,11 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-const typescriptParser = require('@typescript-eslint/parser');
-const typescriptPlugin = require('@typescript-eslint/eslint-plugin');
-const reactPlugin = require('eslint-plugin-react');
-const reactNativePlugin = require('eslint-plugin-react-native');
-const prettierPlugin = require('eslint-plugin-prettier');
-const prettierConfig = require('eslint-config-prettier');
-/* eslint-enable @typescript-eslint/no-require-imports */
+import typescriptParser from '@typescript-eslint/parser';
+import typescriptPlugin from '@typescript-eslint/eslint-plugin';
+import reactPlugin from 'eslint-plugin-react';
+import reactNativePlugin from 'eslint-plugin-react-native';
+import prettierPlugin from 'eslint-plugin-prettier';
+import prettierConfig from 'eslint-config-prettier';
 
-module.exports = [
+export default [
   {
     ignores: [
       'node_modules/**',
@@ -32,8 +30,6 @@ module.exports = [
       },
       globals: {
         __DEV__: 'readonly',
-        require: 'readonly',
-        module: 'readonly',
         console: 'readonly',
         process: 'readonly',
       },
